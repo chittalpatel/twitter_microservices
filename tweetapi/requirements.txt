@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+psycopg2
+SQLAlchemy
+Jinja2
+grpcio
+grpcio-tools
+kafka-python
+redis
+redis-server

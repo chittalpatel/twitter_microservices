@@ -1,0 +1,108 @@
+version: "3.8"
+services:
+###################### tweet comments gRPC server ################################
+    tweet-comments:
+        build:
+            context: .
+            dockerfile: tweet-comments-service/Dockerfile
+        env_file:
+            - tweet-comments-service-env.list
+        image: tweet-comments
+        networks:
+            - twitter-microservices
+
+####################### Kafka server ####################################
+    zookeeper:
+        image: 'bitnami/zookeeper:latest'
+        environment:
+            - ALLOW_ANONYMOUS_LOGIN=yes
+        networks:
+            - twitter-microservices
+        ports:
+            - '2181:2181'
+
+    kafka:
+        image: 'bitnami/kafka:latest'
+        environment:
+            - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+            - ALLOW_PLAINTEXT_LISTENER=yes
+            - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+            - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+            - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+            - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
+        networks:
+            - twitter-microservices
+        ports:
+            - '9093:9093'
+        depends_on:
+            - zookeeper
+
+################################## Redis server ##########################################
+    redis:
+        image: 'bitnami/redis:latest'
+        environment:
+            - ALLOW_EMPTY_PASSWORD=yes
+        networks:
+            - twitter-microservices
+
+######################### Tweet API, Kafka Producer ######################################
+    tweet-api:
+        build:
+            context: .
+            dockerfile: tweetapi/Dockerfile
+        environment:
+            TWEET_COMMENTS_HOST: tweet-comments
+            KAFKA_HOST: kafka
+            COMMENT_TOPIC_NAME: tweet-comments-topic
+            TWEET_TOPIC_NAME: tweets-topic
+            REDIS_HOST: redis
+            REDIS_STORAGE_SECRET: secret-token
+        env_file:
+            -   tweet-api-env.list
+        image: tweetapi
+        networks:
+            - twitter-microservices
+        ports:
+            - 8000:8000
+        depends_on:
+            - kafka
+            - tweet-comments
+            - redis
+
+################### Kafka Consumer - Save comments to DB ##################
+    comments-consumer:
+        build:
+            context: .
+            dockerfile: comments-consumer/Dockerfile
+        image: comments-consumer
+        environment:
+            TWEET_COMMENTS_HOST: tweet-comments
+            KAFKA_HOST: kafka
+            TOPIC_NAME: tweet-comments-topic
+        networks:
+            - twitter-microservices
+        depends_on:
+            - kafka
+            - tweet-comments
+
+################### Kafka Consumer - Cache top words to Redis ##################
+    top-words:
+        build:
+            context: .
+            dockerfile: top-comment-words/Dockerfile
+        image: top-words
+        environment:
+            KAFKA_HOST: kafka
+            TOPICS_NAME: tweet-comments-topic,tweets-topic
+            REDIS_HOST: redis
+            REDIS_STORAGE_SECRET: secret-token
+            WORD_COUNT_TTL_SECONDS: 90
+        networks:
+            - twitter-microservices
+        depends_on:
+            - kafka
+            - redis
+
+#########################################################################
+networks:
+    twitter-microservices:

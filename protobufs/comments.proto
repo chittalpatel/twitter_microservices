@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package comments;
+
+service Comments{
+ rpc PostComment(Comment) returns (PostCommentResponse) {}
+ rpc GetComments(GetCommentRequest) returns (GetCommentResponse){}
+}
+
+message Comment{
+ int32 tweet_id = 1;
+ string comment = 2;
+}
+
+message PostCommentResponse{
+ string message = 1;
+ bool success = 2;
+}
+
+message GetCommentRequest{
+ int32 tweet_id = 1;
+}
+
+message GetCommentResponse{
+ repeated Comment comments = 1;
+ bool success = 2;
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script><body>
+<script>
+    function get_comments(tweet_id) {
+        $.get({
+            url: `/tweets/${tweet_id}/comments`,
+            success: function (comments){
+                comments = comments['comments'];
+                for(let idx=0; idx < comments.length; idx++){
+                    let comment = comments[idx];
+                    $("#"+tweet_id).append(` ${comment.comment} ||`)
+                }
+            },
+        })
+    }
+    $(document).ready(function () {
+        $.get({
+            url: `/tweets/`,
+            success: function (tweets){
+                let tweet_div = $("#tweets");
+                for(let idx=0; idx < tweets.length; idx++){
+                    let tweet = tweets[idx];
+                    tweet_div.append(`
+                        <br><p> Tweet: ${tweet.text}<br> <p id="${tweet.id}">Comments: </p> </p><br>
+                    `)
+                    get_comments(tweet.id);
+                }
+            },
+        })
+    })
+
+</script>
+<h1>Tweets</h1><br>
+<div>
+    <p id="top-words"> Top words:
+        {% for word, cnt in top_words %} {{ word }}, {{ cnt }} ||{% endfor %}
+    </p>
+</div><br>
+<div id="tweets"></div>
+</body>
+<script></script>
+</html>

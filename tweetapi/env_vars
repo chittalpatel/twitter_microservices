@@ -1,0 +1,5 @@
+export POSTGRES_DB="tweets_db"
+export POSTGRES_USER="chittal"
+export POSTGRES_PASSWORD="Chittal15"
+export DATABASE_URL="localhost:5432"
+export USE_POSTGRES="false"

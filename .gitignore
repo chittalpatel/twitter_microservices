@@ -1,0 +1,4 @@
+venv
+.idea
+/tweet-comments-service-env.list
+/tweet-api-env.list

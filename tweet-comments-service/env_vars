@@ -1,0 +1,7 @@
+export POSTGRES_DB="tweet_comments_db"
+export POSTGRES_USER="chittal"
+export POSTGRES_PASSWORD="Chittal15"
+export DATABASE_URL="127.0.0.1:5432"
+export USE_POSTGRES="true"
+export GRPC_VERBOSITY=INFO
+export GRPC_TRACE=server_channel
